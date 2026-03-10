@@ -75,29 +75,22 @@ void commit()
 {
     cout << "Add Commit Number:- ";
     string commitId;
-    cin >> commitId;
+    cin>>commitId;
 
     string folderPath = ".miniVCS/index/";
-    string commitFolder = ".miniVCS/commits/" + commitId;
+    string commitFolder = ".miniVCS/commits/" + commitId; 
 
-    fs::create_directories(commitFolder);
+    // mkdir(commitFolder.c_str(),0777);
 
-    if(fs::is_empty(folderPath)){
-        cout<<"Nothing to commit "<<endl;
-        return;
+    cout << "Files inside " << folderPath << ":\n";
+
+    // Iterate over all entries in the folder
+    for (const auto &entry : fs::directory_iterator(folderPath)) {
+        if (fs::is_regular_file(entry.status())) { // only regular files, skip subfolders
+            cout << entry.path().filename().string() << endl;
+        }
     }
-    for (const auto &entry : fs::directory_iterator(folderPath))
-    {
-        string fileName = entry.path().filename();
-        ofstream Myfile(commitFolder + "/" + fileName);
-        string sourcePath = folderPath + fileName;
-        ifstream inFile(sourcePath, ios::binary);
-        Myfile << inFile.rdbuf();
-        inFile.close();
-        Myfile.close();
-        fs::remove(folderPath + fileName);
-    }
-    cout<<"Committed Successfully "<<endl;
+
 }
 void checkout()
 {
