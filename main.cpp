@@ -6,6 +6,10 @@
 #include <sys/types.h>
 #include <vector>
 #include <algorithm>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -15,25 +19,15 @@ bool repoInitialized()
     return fs::exists(".miniVCS");
 }
 
-int getNextCommitNumber()
+string getTimestamp()
 {
-    string counterFile = ".miniVCS/commit_counter.txt";
-    int commitNumber = 0;
+    auto now = chrono::system_clock::now();
+    time_t t = chrono::system_clock::to_time_t(now);
+    tm localTime = *localtime(&t);
 
-    if (fs::exists(counterFile))
-    {
-        ifstream in(counterFile);
-        in >> commitNumber;
-        in.close();
-    }
-
-    commitNumber++;
-
-    ofstream out(counterFile);
-    out << commitNumber;
-    out.close();
-
-    return commitNumber;
+    stringstream ss;
+    ss << put_time(&localTime, "%Y%m%d_%H%M%S"); // e.g., 20260313_1545
+    return ss.str();
 }
 
 void init()
@@ -51,38 +45,51 @@ void init()
     fs::create_directories(".miniVCS/commits");
     fs::create_directories(".miniVCS/object");
 
-    // ✅ Create commit counter file
-    string counterFile = ".miniVCS/commit_counter.txt";
-    ofstream out(counterFile);
-    out << 0;
-    out.close();
-
     cout << "miniVCS Initialized Successfully!\n";
 }
 
-void add(string filePath)
-{
-    if (!fs::exists(".miniVCS"))
-    {
+void add(const string &path) {
+    if (!repoInitialized()) {
         cout << "Run init first\n";
         return;
     }
 
-    if (!fs::exists(filePath))
-    {
-        cout << "File does not exist\n";
+    if (!fs::exists(path)) {
+        cout << "File/Folder does not exist\n";
         return;
     }
 
-    ifstream inFile(filePath, ios::binary);
+    if (fs::is_directory(path)) {
+        // recurse
+        for (auto &entry : fs::recursive_directory_iterator(path)) {
+            if (fs::is_directory(entry.path()))
+                continue; // skip folders
 
-    string fileName = fs::path(filePath).filename().string();
-    string newPath = ".miniVCS/index/" + fileName;
+            if (entry.path().string().find(".miniVCS") != string::npos)
+                continue;
 
-    ofstream outFile(newPath, ios::binary);
-    outFile << inFile.rdbuf();
+            string relPath = fs::relative(entry.path(), fs::current_path()).string();
+            string newPath = ".miniVCS/index/" + relPath;
 
-    cout << "File added successfully\n";
+            fs::create_directories(fs::path(newPath).parent_path());
+
+            ifstream inFile(entry.path(), ios::binary);
+            ofstream outFile(newPath, ios::binary);
+            outFile << inFile.rdbuf();
+        }
+    } else {
+        // single file
+        string fileName = fs::path(path).filename().string();
+        string newPath = ".miniVCS/index/" + fileName;
+
+        fs::create_directories(fs::path(newPath).parent_path());
+
+        ifstream inFile(path, ios::binary);
+        ofstream outFile(newPath, ios::binary);
+        outFile << inFile.rdbuf();
+    }
+
+    cout << "Files added successfully\n";
 }
 
 void commit(string message)
@@ -101,34 +108,36 @@ void commit(string message)
         return;
     }
 
-    int commitCount = getNextCommitNumber();
-    string commitId = "commit_" + to_string(commitCount);
+    string commitId = "commit_" + getTimestamp();
     string commitFolder = ".miniVCS/commits/" + commitId;
 
     fs::create_directories(commitFolder);
 
-    string metaPath = commitFolder + "/meta.txt";
-    ofstream meta(metaPath);
-
+    // Create meta file
+    ofstream meta(commitFolder + "/meta.txt");
     meta << "Commit: " << commitId << endl;
     meta << "Message: " << message << endl;
-
     meta.close();
 
-    for (const auto &entry : fs::directory_iterator(folderPath))
+    // Copy all files preserving folder structure
+    for (auto &entry : fs::recursive_directory_iterator(folderPath))
     {
-        string fileName = entry.path().filename().string();
+        if (fs::is_directory(entry.path()))
+            continue;
+
+        string relPath = fs::relative(entry.path(), folderPath).string();
+        string newPath = commitFolder + "/" + relPath;
+
+        fs::create_directories(fs::path(newPath).parent_path());
 
         ifstream inFile(entry.path(), ios::binary);
-        ofstream outFile(commitFolder + "/" + fileName, ios::binary);
-
+        ofstream outFile(newPath, ios::binary);
         outFile << inFile.rdbuf();
-
-        inFile.close();
-        outFile.close();
-
-        fs::remove(entry.path());
     }
+
+    // Clear the index after commit
+    fs::remove_all(folderPath);
+    fs::create_directories(folderPath);
 
     cout << "Committed Successfully\n";
 }
@@ -166,7 +175,8 @@ void checkout(string commitName)
     {
         string sourceFile = entry.path().string();
         string fileName = entry.path().filename().string();
-
+        if (fileName == "meta.txt") // Skip meta
+            continue;
         ifstream src(sourceFile, ios::binary);
         ofstream dst(fileName, ios::binary);
         dst << src.rdbuf();
@@ -254,7 +264,7 @@ int main(int argc, char *argv[])
     {
         cout << "Usage:\n";
         cout << "./miniVCS init\n";
-        cout << "./miniVCS add <file>\n";
+        cout << "./miniVCS add <files>\n";
         cout << "./miniVCS commit\n";
         cout << "./miniVCS checkout <commit>\n";
         cout << "./miniVCS log\n";
