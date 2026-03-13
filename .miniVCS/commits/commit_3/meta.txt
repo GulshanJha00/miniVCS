@@ -1,2 +1,0 @@
-Commit: commit_3
-Message: this is 3rd commit

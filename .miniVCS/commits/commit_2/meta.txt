@@ -1,2 +1,0 @@
-Commit: commit_2
-Message: this is econd commit
