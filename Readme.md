@@ -95,7 +95,6 @@ Shows currently staged files.
 
 ## Future Improvements
 
-* Commit messages via CLI (`commit -m "message"`)
 * File hashing and object storage
 * Diff detection
 * Branch support
@@ -103,4 +102,5 @@ Shows currently staged files.
 ## Author
 
 Gulshan Kumar
+
 
