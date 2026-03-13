@@ -10,10 +10,6 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int commitCount = distance(
-    fs::directory_iterator(".miniVCS/commits"),
-    fs::directory_iterator{});
-
 bool repoInitialized()
 {
     return fs::exists(".miniVCS");
@@ -117,7 +113,6 @@ void commit()
     fs::create_directories(commitFolder);
 
     cout << "Enter commit message: ";
-    cin.ignore();
     string message;
     getline(cin, message);
 
@@ -204,17 +199,40 @@ void log()
     }
 
     cout << "Commits are:- " << endl;
-    vector<string> commits;
+    vector<pair<string,string>>commits;
     for (auto const &entry : fs::directory_iterator(fullDir))
     {
-        string sourceFile = entry.path().filename().string();
-        commits.push_back(sourceFile);
+        if (!fs::is_directory(entry.status()))
+            continue;
+
+        string commitId = entry.path().filename().string();
+
+        string metaPath = entry.path().string() + "/meta.txt";
+
+        ifstream meta(metaPath);
+
+        string line;
+        string message;
+
+        while (getline(meta, line))
+        {
+            if (line.find("Message:") != string::npos)
+            {
+                int pos = line.find(":");
+                message = line.substr(pos + 2); 
+                break;
+            }
+        }
+
+        meta.close();
+
+        commits.push_back({commitId, message});
     }
     sort(commits.begin(), commits.end());
     reverse(commits.begin(), commits.end()); // latest first
-    for (auto a : commits)
+    for (auto &c : commits)
     {
-        cout << a << endl;
+        cout << c.first << " -> " << c.second << endl;
     }
 }
 
@@ -242,7 +260,7 @@ void status()
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 2)
     {
         cout << "Usage:\n";
         cout << "./miniVCS init\n";
@@ -285,6 +303,14 @@ int main(int argc, char *argv[])
         log();
     else if (command == "status")
         status();
-    else
-        cout << "Wrong Input ";
+    else{
+        cout << "Usage:\n";
+        cout << "./miniVCS init\n";
+        cout << "./miniVCS add <file>\n";
+        cout << "./miniVCS commit\n";
+        cout << "./miniVCS checkout <commit>\n";
+        cout << "./miniVCS log\n";
+        cout << "./miniVCS status\n";
+        return 0;
+    }
 }
