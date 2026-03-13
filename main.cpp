@@ -10,6 +10,10 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+int commitCount = distance(
+    fs::directory_iterator(".miniVCS/commits"),
+    fs::directory_iterator{});
+
 bool repoInitialized()
 {
     return fs::exists(".miniVCS");
@@ -62,45 +66,29 @@ void init()
     }
 }
 
-void add()
+void add(string filePath)
 {
-    if (!repoInitialized())
+    if (!fs::exists(".miniVCS"))
     {
         cout << "Run init first\n";
         return;
     }
-    while (true)
+
+    if (!fs::exists(filePath))
     {
-        cout << "Type 'exit' to exit" << endl;
-        cout << "Choose file to be added:- ";
-        string filePath;
-        cin >> filePath;
-        if (filePath == "exit")
-        {
-            cout << "Exited Successful" << endl;
-            return;
-        }
-        if (!fs::exists(filePath))
-        {
-            cout << "File does not exit " << endl;
-            continue;
-        }
-
-        ifstream inFile(filePath, ios::binary);
-
-        if (!inFile)
-        {
-            cout << "Failed to open file. Make sure it exists!" << endl;
-        }
-
-        string line;
-        string newPath = ".miniVCS/index/" + filePath;
-        ofstream Myfile(newPath, ios::binary);
-        Myfile << inFile.rdbuf();
-
-        inFile.close();
-        cout << "File Added Successful";
+        cout << "File does not exist\n";
+        return;
     }
+
+    ifstream inFile(filePath, ios::binary);
+
+    string fileName = fs::path(filePath).filename().string();
+    string newPath = ".miniVCS/index/" + fileName;
+
+    ofstream outFile(newPath, ios::binary);
+    outFile << inFile.rdbuf();
+
+    cout << "File added successfully\n";
 }
 
 void commit()
@@ -110,40 +98,56 @@ void commit()
         cout << "Run init first\n";
         return;
     }
+
     string folderPath = ".miniVCS/index/";
+
     if (fs::is_empty(folderPath))
     {
-        cout << "Nothing to commit " << endl;
+        cout << "Nothing to commit\n";
         return;
     }
-    cout << "Add Commit Number:- ";
-    string commitId;
-    cin >> commitId;
 
+    int commitCount = distance(
+        fs::directory_iterator(".miniVCS/commits"),
+        fs::directory_iterator{});
+
+    string commitId = "commit_" + to_string(commitCount + 1);
     string commitFolder = ".miniVCS/commits/" + commitId;
-    if (fs::exists(commitFolder))
-    {
-        cout << "Commit number already exits " << endl;
-        return;
-    }
 
     fs::create_directories(commitFolder);
+
+    cout << "Enter commit message: ";
+    cin.ignore();
+    string message;
+    getline(cin, message);
+
+    string metaPath = commitFolder + "/meta.txt";
+    ofstream meta(metaPath);
+
+    meta << "Commit: " << commitId << endl;
+    meta << "Message: " << message << endl;
+
+    meta.close();
 
     for (const auto &entry : fs::directory_iterator(folderPath))
     {
         string fileName = entry.path().filename().string();
-        ofstream Myfile(commitFolder + "/" + fileName, ios::binary);
-        string sourcePath = folderPath + fileName;
-        ifstream inFile(sourcePath, ios::binary);
-        Myfile << inFile.rdbuf();
+
+        ifstream inFile(entry.path(), ios::binary);
+        ofstream outFile(commitFolder + "/" + fileName, ios::binary);
+
+        outFile << inFile.rdbuf();
+
         inFile.close();
-        Myfile.close();
-        fs::remove(folderPath + fileName);
+        outFile.close();
+
+        fs::remove(entry.path());
     }
-    cout << "Committed Successfully " << endl;
+
+    cout << "Committed Successfully\n";
 }
 
-void checkout()
+void checkout(string commitName)
 {
     if (!repoInitialized())
     {
@@ -165,9 +169,6 @@ void checkout()
         return;
     }
 
-    string commitName;
-    cout << "Enter commit Checkout:- ";
-    cin >> commitName;
 
     string commitsLocation = ".miniVCS/commits/" + commitName;
     if (!fs::exists(commitsLocation))
@@ -188,7 +189,8 @@ void checkout()
     cout << " Checkout Completed " << endl;
 }
 
-void log(){
+void log()
+{
     if (!repoInitialized())
     {
         cout << "Run init first\n";
@@ -202,19 +204,22 @@ void log(){
     }
 
     cout << "Commits are:- " << endl;
-    ordered_set<string> s;
+    vector<string> commits;
     for (auto const &entry : fs::directory_iterator(fullDir))
     {
         string sourceFile = entry.path().filename().string();
-        s.insert(sourceFile);
+        commits.push_back(sourceFile);
     }
-    for (auto a : s)
+    sort(commits.begin(), commits.end());
+    reverse(commits.begin(), commits.end()); // latest first
+    for (auto a : commits)
     {
         cout << a << endl;
     }
 }
 
-void status(){
+void status()
+{
     if (!repoInitialized())
     {
         cout << "Run init first\n";
@@ -235,29 +240,50 @@ void status(){
     }
 }
 
-
-int main()
+int main(int argc, char *argv[])
 {
-    string a;
-    cout << "1) init " << endl;
-    cout << "2) add " << endl;
-    cout << "3) commit " << endl;
-    cout << "4) checkout " << endl;
-    cout << "5) log " << endl;
-    cout << "6) status " << endl;
-    cout << "Enter what do you want to do:- ";
-    cin >> a;
-    if (a == "init")
+    if (argc < 3)
+    {
+        cout << "Usage:\n";
+        cout << "./miniVCS init\n";
+        cout << "./miniVCS add <file>\n";
+        cout << "./miniVCS commit\n";
+        cout << "./miniVCS checkout <commit>\n";
+        cout << "./miniVCS log\n";
+        cout << "./miniVCS status\n";
+        return 0;
+    }
+    string command = argv[1];
+
+    if (command == "init")
         init();
-    else if (a == "add")
-        add();
-    else if (a == "commit")
+    else if (command == "add")
+    {
+        if (argc < 3)
+        {
+            cout << "Usage: ./miniVCS add <file>\n";
+            return 0;
+        }
+
+        string file = argv[2];
+        add(file);
+    }
+    else if (command == "commit")
         commit();
-    else if (a == "checkout")
-        checkout();
-    else if (a == "log")
+    else if (command == "checkout")
+    {
+        if (argc < 3)
+        {
+            cout << "Usage: ./miniVCS checkout <commit>\n";
+            return 0;
+        }
+
+        string commitName = argv[2];
+        checkout(commitName);
+    }
+    else if (command == "log")
         log();
-    else if (a == "status")
+    else if (command == "status")
         status();
     else
         cout << "Wrong Input ";
