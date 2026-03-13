@@ -39,17 +39,17 @@ void init()
         cout << "Already Exist\n";
         return;
     }
+    ofstream ignoreFile(".miniVCSignore");
 
     fs::create_directories(folderName);
     fs::create_directories(".miniVCS/index");
     fs::create_directories(".miniVCS/commits");
     fs::create_directories(".miniVCS/object");
-
     cout << "miniVCS Initialized Successfully!\n";
 }
 
 void add(const string &path)
-    {
+{
     if (!repoInitialized())
     {
         cout << "Run init first\n";
@@ -61,20 +61,41 @@ void add(const string &path)
         cout << "File/Folder does not exist\n";
         return;
     }
-
+    vector<string> ignoreDir;
+    string DirIgnore = ".miniVCSignore";
+    ifstream ignore(DirIgnore);
+    string line;
+    while (getline(ignore, line))
+    {
+        ignoreDir.push_back(line);
+    }
     if (fs::is_directory(path))
     {
         // recurse
         for (auto &entry : fs::recursive_directory_iterator(path))
         {
             if (fs::is_directory(entry.path()))
-                continue; // skip folders
+                continue;
 
             if (entry.path().string().find(".miniVCS") != string::npos)
                 continue;
 
             string relPath = fs::relative(entry.path(), fs::current_path()).string();
-            
+
+            bool ignored = false;
+
+            for (auto &a : ignoreDir)
+            {
+                if (relPath.find(a) == 0)
+                {
+                    ignored = true;
+                    break;
+                }
+            }
+
+            if (ignored)
+                continue;
+
             string newPath = ".miniVCS/index/" + relPath;
 
             fs::create_directories(fs::path(newPath).parent_path());
