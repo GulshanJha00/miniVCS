@@ -87,7 +87,7 @@ void add(string filePath)
     cout << "File added successfully\n";
 }
 
-void commit()
+void commit(string message)
 {
     if (!repoInitialized())
     {
@@ -112,9 +112,6 @@ void commit()
 
     fs::create_directories(commitFolder);
 
-    cout << "Enter commit message: ";
-    string message;
-    getline(cin, message);
 
     string metaPath = commitFolder + "/meta.txt";
     ofstream meta(metaPath);
@@ -286,8 +283,14 @@ int main(int argc, char *argv[])
         string file = argv[2];
         add(file);
     }
-    else if (command == "commit")
-        commit();
+    else if (command == "commit"){
+        if (argc < 3)
+        {
+            cout << "Usage: ./miniVCS commit '<message>'\n";
+            return 0;
+        }
+        commit(argv[2]);
+    }
     else if (command == "checkout")
     {
         if (argc < 3)
@@ -307,7 +310,7 @@ int main(int argc, char *argv[])
         cout << "Usage:\n";
         cout << "./miniVCS init\n";
         cout << "./miniVCS add <file>\n";
-        cout << "./miniVCS commit\n";
+        cout << "./miniVCS commit '<message>'\n";
         cout << "./miniVCS checkout <commit>\n";
         cout << "./miniVCS log\n";
         cout << "./miniVCS status\n";
