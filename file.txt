@@ -1,7 +1,0 @@
-hello this is a text file and it is being edited. so that it will be saved inside the minivcs/index
-adda
-dod
-
-saveds
-s
-vfdf
