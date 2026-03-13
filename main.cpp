@@ -4,17 +4,24 @@
 #include <sys/stat.h>
 #include <filesystem>
 #include <sys/types.h>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 namespace fs = std::filesystem;
+
+bool repoInitialized()
+{
+    return fs::exists(".miniVCS");
+}
 
 void init()
 {
     cout << "Initializing " << endl;
     string folderName = ".miniVCS";
-    if (fs::exists(folderName))
+    if (repoInitialized())
     {
-        cout << "Already initialized " << endl;
+        cout << "Already Exist\n";
         return;
     }
 
@@ -57,6 +64,11 @@ void init()
 
 void add()
 {
+    if (!repoInitialized())
+    {
+        cout << "Run init first\n";
+        return;
+    }
     while (true)
     {
         cout << "Type 'exit' to exit" << endl;
@@ -93,6 +105,11 @@ void add()
 
 void commit()
 {
+    if (!repoInitialized())
+    {
+        cout << "Run init first\n";
+        return;
+    }
     string folderPath = ".miniVCS/index/";
     if (fs::is_empty(folderPath))
     {
@@ -115,7 +132,7 @@ void commit()
     for (const auto &entry : fs::directory_iterator(folderPath))
     {
         string fileName = entry.path().filename().string();
-        ofstream Myfile(commitFolder + "/" + fileName,ios::binary);
+        ofstream Myfile(commitFolder + "/" + fileName, ios::binary);
         string sourcePath = folderPath + fileName;
         ifstream inFile(sourcePath, ios::binary);
         Myfile << inFile.rdbuf();
@@ -128,6 +145,11 @@ void commit()
 
 void checkout()
 {
+    if (!repoInitialized())
+    {
+        cout << "Run init first\n";
+        return;
+    }
     string indexFile = ".miniVCS/index";
 
     if (!fs::exists(indexFile))
@@ -148,11 +170,11 @@ void checkout()
     cin >> commitName;
 
     string commitsLocation = ".miniVCS/commits/" + commitName;
-    if(!fs::exists(commitsLocation)){
-        cout<<"Commit number does not exit "<<endl;
+    if (!fs::exists(commitsLocation))
+    {
+        cout << "Commit number does not exit " << endl;
         return;
     }
-
 
     for (auto const &entry : fs::directory_iterator(commitsLocation))
     {
@@ -166,6 +188,54 @@ void checkout()
     cout << " Checkout Completed " << endl;
 }
 
+void log(){
+    if (!repoInitialized())
+    {
+        cout << "Run init first\n";
+        return;
+    }
+    string fullDir = ".miniVCS/commits";
+    if (fs::is_empty(fullDir))
+    {
+        cout << "You haven't Commited anything yet";
+        return;
+    }
+
+    cout << "Commits are:- " << endl;
+    ordered_set<string> s;
+    for (auto const &entry : fs::directory_iterator(fullDir))
+    {
+        string sourceFile = entry.path().filename().string();
+        s.insert(sourceFile);
+    }
+    for (auto a : s)
+    {
+        cout << a << endl;
+    }
+}
+
+void status(){
+    if (!repoInitialized())
+    {
+        cout << "Run init first\n";
+        return;
+    }
+    string fullDir = ".miniVCS/index";
+    if (fs::is_empty(fullDir))
+    {
+        cout << "No files staged";
+        return;
+    }
+
+    cout << "Staged files are:- " << endl;
+    for (auto const &entry : fs::directory_iterator(fullDir))
+    {
+        string sourceFile = entry.path().filename().string();
+        cout << sourceFile << endl;
+    }
+}
+
+
 int main()
 {
     string a;
@@ -173,6 +243,8 @@ int main()
     cout << "2) add " << endl;
     cout << "3) commit " << endl;
     cout << "4) checkout " << endl;
+    cout << "5) log " << endl;
+    cout << "6) status " << endl;
     cout << "Enter what do you want to do:- ";
     cin >> a;
     if (a == "init")
@@ -183,6 +255,10 @@ int main()
         commit();
     else if (a == "checkout")
         checkout();
+    else if (a == "log")
+        log();
+    else if (a == "status")
+        status();
     else
         cout << "Wrong Input ";
 }
