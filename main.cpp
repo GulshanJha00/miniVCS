@@ -48,20 +48,25 @@ void init()
     cout << "miniVCS Initialized Successfully!\n";
 }
 
-void add(const string &path) {
-    if (!repoInitialized()) {
+void add(const string &path)
+    {
+    if (!repoInitialized())
+    {
         cout << "Run init first\n";
         return;
     }
 
-    if (!fs::exists(path)) {
+    if (!fs::exists(path))
+    {
         cout << "File/Folder does not exist\n";
         return;
     }
 
-    if (fs::is_directory(path)) {
+    if (fs::is_directory(path))
+    {
         // recurse
-        for (auto &entry : fs::recursive_directory_iterator(path)) {
+        for (auto &entry : fs::recursive_directory_iterator(path))
+        {
             if (fs::is_directory(entry.path()))
                 continue; // skip folders
 
@@ -69,6 +74,7 @@ void add(const string &path) {
                 continue;
 
             string relPath = fs::relative(entry.path(), fs::current_path()).string();
+            
             string newPath = ".miniVCS/index/" + relPath;
 
             fs::create_directories(fs::path(newPath).parent_path());
@@ -77,7 +83,9 @@ void add(const string &path) {
             ofstream outFile(newPath, ios::binary);
             outFile << inFile.rdbuf();
         }
-    } else {
+    }
+    else
+    {
         // single file
         string fileName = fs::path(path).filename().string();
         string newPath = ".miniVCS/index/" + fileName;
@@ -142,46 +150,56 @@ void commit(string message)
     cout << "Committed Successfully\n";
 }
 
-void checkout(string commitName)
+void checkout(const string &commitName)
 {
     if (!repoInitialized())
     {
         cout << "Run init first\n";
         return;
     }
-    string indexFile = ".miniVCS/index";
 
-    if (!fs::exists(indexFile))
+    string indexDir = ".miniVCS/index";
+
+    if (!fs::exists(indexDir))
     {
         cout << "Index folder missing\n";
-        cout << "Please Initialize before checkout\n";
         return;
     }
 
-    if (!fs::is_empty(indexFile))
+    if (!fs::is_empty(indexDir))
     {
-        cout << "Please Commit Unsaved Files Before Checkout.\n";
+        cout << "Please commit unsaved files before checkout.\n";
         return;
     }
 
-    string commitsLocation = ".miniVCS/commits/" + commitName;
-    if (!fs::exists(commitsLocation))
+    string commitFolder = ".miniVCS/commits/" + commitName;
+
+    if (!fs::exists(commitFolder))
     {
-        cout << "Commit number does not exit " << endl;
+        cout << "Commit does not exist\n";
         return;
     }
 
-    for (auto const &entry : fs::directory_iterator(commitsLocation))
+    for (auto &entry : fs::recursive_directory_iterator(commitFolder))
     {
-        string sourceFile = entry.path().string();
-        string fileName = entry.path().filename().string();
-        if (fileName == "meta.txt") // Skip meta
+        if (fs::is_directory(entry.path()))
             continue;
-        ifstream src(sourceFile, ios::binary);
-        ofstream dst(fileName, ios::binary);
+
+        if (entry.path().filename() == "meta.txt")
+            continue;
+
+        // preserve relative path from commit folder
+        string relPath = fs::relative(entry.path(), commitFolder).string();
+        string newPath = relPath; // copy to current working dir
+
+        fs::create_directories(fs::path(newPath).parent_path());
+
+        ifstream src(entry.path(), ios::binary);
+        ofstream dst(newPath, ios::binary);
         dst << src.rdbuf();
     }
-    cout << " Checkout Completed " << endl;
+
+    cout << "Checkout completed\n";
 }
 
 void log()
@@ -243,18 +261,24 @@ void status()
         cout << "Run init first\n";
         return;
     }
-    string fullDir = ".miniVCS/index";
-    if (fs::is_empty(fullDir))
+
+    string indexDir = ".miniVCS/index";
+
+    if (fs::is_empty(indexDir))
     {
-        cout << "No files staged";
+        cout << "No files staged\n";
         return;
     }
 
-    cout << "Staged files are:- " << endl;
-    for (auto const &entry : fs::directory_iterator(fullDir))
+    cout << "Staged files are:\n";
+
+    for (auto &entry : fs::recursive_directory_iterator(indexDir))
     {
-        string sourceFile = entry.path().filename().string();
-        cout << sourceFile << endl;
+        if (fs::is_directory(entry.path()))
+            continue;
+
+        string relPath = fs::relative(entry.path(), indexDir).string();
+        cout << relPath << endl;
     }
 }
 
