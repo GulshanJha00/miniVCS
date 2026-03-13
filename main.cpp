@@ -15,51 +15,49 @@ bool repoInitialized()
     return fs::exists(".miniVCS");
 }
 
+int getNextCommitNumber()
+{
+    string counterFile = ".miniVCS/commit_counter.txt";
+    int commitNumber = 0;
+
+    if (fs::exists(counterFile))
+    {
+        ifstream in(counterFile);
+        in >> commitNumber;
+        in.close();
+    }
+
+    commitNumber++;
+
+    ofstream out(counterFile);
+    out << commitNumber;
+    out.close();
+
+    return commitNumber;
+}
+
 void init()
 {
     cout << "Initializing " << endl;
     string folderName = ".miniVCS";
-    if (repoInitialized())
+    if (fs::exists(folderName))
     {
         cout << "Already Exist\n";
         return;
     }
 
-    if (mkdir(folderName.c_str(), 0777) == 0)
-    {
-        cout << "miniVCS Initialized Successfully!" << endl;
-    }
-    else
-    {
-        cout << "Initialization exists or failed to create." << endl;
-    }
-    string index = ".miniVCS/index";
-    if (mkdir(index.c_str(), 0777) == 0)
-    {
-        cout << "Index Folder Initialized Successfully!" << endl;
-    }
-    else
-    {
-        cout << "Index Folder exists or failed to create." << endl;
-    }
-    string commit = ".miniVCS/commits";
-    if (mkdir(commit.c_str(), 0777) == 0)
-    {
-        cout << "Commit Folder Initialized Successfully!" << endl;
-    }
-    else
-    {
-        cout << "Commit Folder exists or failed to create." << endl;
-    }
-    string objects = ".miniVCS/object";
-    if (mkdir(objects.c_str(), 0777) == 0)
-    {
-        cout << "Objects Folder Initialized Successfully!" << endl;
-    }
-    else
-    {
-        cout << "Objects Folder exists or failed to create." << endl;
-    }
+    fs::create_directories(folderName);
+    fs::create_directories(".miniVCS/index");
+    fs::create_directories(".miniVCS/commits");
+    fs::create_directories(".miniVCS/object");
+
+    // ✅ Create commit counter file
+    string counterFile = ".miniVCS/commit_counter.txt";
+    ofstream out(counterFile);
+    out << 0;
+    out.close();
+
+    cout << "miniVCS Initialized Successfully!\n";
 }
 
 void add(string filePath)
@@ -103,15 +101,11 @@ void commit(string message)
         return;
     }
 
-    int commitCount = distance(
-        fs::directory_iterator(".miniVCS/commits"),
-        fs::directory_iterator{});
-
-    string commitId = "commit_" + to_string(commitCount + 1);
+    int commitCount = getNextCommitNumber();
+    string commitId = "commit_" + to_string(commitCount);
     string commitFolder = ".miniVCS/commits/" + commitId;
 
     fs::create_directories(commitFolder);
-
 
     string metaPath = commitFolder + "/meta.txt";
     ofstream meta(metaPath);
@@ -161,7 +155,6 @@ void checkout(string commitName)
         return;
     }
 
-
     string commitsLocation = ".miniVCS/commits/" + commitName;
     if (!fs::exists(commitsLocation))
     {
@@ -196,7 +189,7 @@ void log()
     }
 
     cout << "Commits are:- " << endl;
-    vector<pair<string,string>>commits;
+    vector<pair<string, string>> commits;
     for (auto const &entry : fs::directory_iterator(fullDir))
     {
         if (!fs::is_directory(entry.status()))
@@ -216,7 +209,7 @@ void log()
             if (line.find("Message:") != string::npos)
             {
                 int pos = line.find(":");
-                message = line.substr(pos + 2); 
+                message = line.substr(pos + 2);
                 break;
             }
         }
@@ -283,7 +276,8 @@ int main(int argc, char *argv[])
         string file = argv[2];
         add(file);
     }
-    else if (command == "commit"){
+    else if (command == "commit")
+    {
         if (argc < 3)
         {
             cout << "Usage: ./miniVCS commit '<message>'\n";
@@ -306,7 +300,8 @@ int main(int argc, char *argv[])
         log();
     else if (command == "status")
         status();
-    else{
+    else
+    {
         cout << "Usage:\n";
         cout << "./miniVCS init\n";
         cout << "./miniVCS add <file>\n";
