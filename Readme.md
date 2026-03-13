@@ -50,7 +50,7 @@ Adds files to the staging area (`index`).
 ### Commit
 
 ```
-./miniVCS commit
+./miniVCS commit '<message>'
 ```
 
 Creates a new commit and stores a snapshot of staged files.
@@ -103,3 +103,4 @@ Shows currently staged files.
 ## Author
 
 Gulshan Kumar
+
