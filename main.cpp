@@ -353,6 +353,73 @@ void status()
     }
 }
 
+void cloneRepo(const string &username)
+{
+    string cloneFolder = username;
+
+    if (fs::exists(cloneFolder))
+    {
+        cout << "Folder '" << cloneFolder << "' already exists\n";
+        return;
+    }
+
+    fs::create_directories(cloneFolder + "/.miniVCS/index");
+    fs::create_directories(cloneFolder + "/.miniVCS/commits");
+    fs::create_directories(cloneFolder + "/.miniVCS/object");
+
+    // Save username locally in config
+    ofstream config(cloneFolder + "/.miniVCS/config");
+    config << "username=" << username << endl;
+    config.close();
+
+    // Download commits from S3
+    string command = "aws s3 sync s3://minivcs-bucket/" + username + " " + cloneFolder + "/.miniVCS/commits";
+    system(command.c_str());
+
+    // Find latest commit
+    string latestCommit;
+    for (auto &entry : fs::directory_iterator(cloneFolder + "/.miniVCS/commits"))
+    {
+        if (!fs::is_directory(entry))
+            continue;
+
+        string name = entry.path().filename().string();
+        if (name > latestCommit)
+            latestCommit = name;
+    }
+
+    if (latestCommit.empty())
+    {
+        cout << "No commits found for user " << username << "\n";
+        return;
+    }
+
+    cout << "Latest commit: " << latestCommit << "\n";
+    cout << "Checking out latest commit in '" << cloneFolder << "'...\n";
+
+    // Checkout latest commit safely
+    string commitFolder = cloneFolder + "/.miniVCS/commits/" + latestCommit;
+    for (auto &entry : fs::recursive_directory_iterator(commitFolder))
+    {
+        if (fs::is_directory(entry.path()))
+            continue;
+
+        if (entry.path().filename() == "meta.txt")
+            continue;
+
+        string relPath = fs::relative(entry.path(), commitFolder).string();
+        string newPath = cloneFolder + "/" + relPath;
+
+        fs::create_directories(fs::path(newPath).parent_path());
+
+        ifstream src(entry.path(), ios::binary);
+        ofstream dst(newPath, ios::binary);
+        dst << src.rdbuf();
+    }
+
+    cout << "Clone completed safely!\n";
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -405,6 +472,16 @@ int main(int argc, char *argv[])
         log();
     else if (command == "status")
         status();
+    else if (command == "clone")
+    {
+        if (argc < 3)
+        {
+            cout << "Usage: ./miniVCS clone <username>\n";
+            return 0;
+        }
+
+        cloneRepo(argv[2]);
+    }
     else
     {
         cout << "Usage:\n";
