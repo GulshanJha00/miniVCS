@@ -30,22 +30,50 @@ string getTimestamp()
     return ss.str();
 }
 
+string getUsername()
+{
+    ifstream config(".miniVCS/config");
+    string line;
+
+    while (getline(config, line))
+    {
+        if (line.find("username=") == 0)
+        {
+            return line.substr(9);
+        }
+    }
+
+    return "default";
+}
+
 void init()
 {
-    cout << "Initializing " << endl;
+    cout << "Initializing miniVCS\n";
+
     string folderName = ".miniVCS";
+
     if (fs::exists(folderName))
     {
-        cout << "Already Exist\n";
+        cout << "Already exists\n";
         return;
     }
-    ofstream ignoreFile(".miniVCSignore");
+
+    string username;
+    cout << "Enter username: ";
+    cin >> username;
 
     fs::create_directories(folderName);
     fs::create_directories(".miniVCS/index");
     fs::create_directories(".miniVCS/commits");
     fs::create_directories(".miniVCS/object");
-    cout << "miniVCS Initialized Successfully!\n";
+
+    ofstream config(".miniVCS/config");
+    config << "username=" << username << endl;
+    config.close();
+
+    ofstream ignoreFile(".miniVCSignore");
+
+    cout << "miniVCS initialized for user: " << username << endl;
 }
 
 void add(const string &path)
@@ -142,7 +170,6 @@ void commit(string message)
 
     fs::create_directories(commitFolder);
 
-    // Create meta file
     ofstream meta(commitFolder + "/meta.txt");
     meta << "Commit: " << commitId << endl;
     meta << "Message: " << message << endl;
@@ -164,11 +191,21 @@ void commit(string message)
         outFile << inFile.rdbuf();
     }
 
-    // Clear the index after commit
+    // Upload to S3 **after files exist**
+    string username = getUsername();
+    string bucketName = "s3://minivcs-bucket";
+
+    string command =
+        "aws s3 cp " + commitFolder +
+        " " + bucketName + "/" + username + "/" + commitId +
+        " --recursive";
+
+    system(command.c_str());
+
     fs::remove_all(folderPath);
     fs::create_directories(folderPath);
 
-    cout << "Committed Successfully\n";
+    cout << "Committed Successfully and uploaded to S3\n";
 }
 
 void checkout(const string &commitName)
@@ -189,9 +226,16 @@ void checkout(const string &commitName)
 
     if (!fs::is_empty(indexDir))
     {
-        cout << "Please commit unsaved files before checkout.\n";
+        cout << "Please commit staged files before checkout.\n";
         return;
     }
+
+    string username = getUsername();
+
+    // Sync commits from S3
+    string command =
+        "aws s3 sync s3://minivcs-bucket/" + username + " .miniVCS/commits";
+    system(command.c_str());
 
     string commitFolder = ".miniVCS/commits/" + commitName;
 
@@ -201,6 +245,16 @@ void checkout(const string &commitName)
         return;
     }
 
+    // Clean working directory except .miniVCS
+    for (auto &entry : fs::directory_iterator(fs::current_path()))
+    {
+        if (entry.path().filename() == ".miniVCS")
+            continue;
+
+        fs::remove_all(entry.path());
+    }
+
+    // Restore files from commit
     for (auto &entry : fs::recursive_directory_iterator(commitFolder))
     {
         if (fs::is_directory(entry.path()))
@@ -209,19 +263,20 @@ void checkout(const string &commitName)
         if (entry.path().filename() == "meta.txt")
             continue;
 
-        // preserve relative path from commit folder
         string relPath = fs::relative(entry.path(), commitFolder).string();
-        string newPath = relPath; // copy to current working dir
+        string newPath = relPath;
 
         fs::create_directories(fs::path(newPath).parent_path());
 
         ifstream src(entry.path(), ios::binary);
         ofstream dst(newPath, ios::binary);
+
         dst << src.rdbuf();
     }
 
-    cout << "Checkout completed\n";
+    cout << "Checkout completed: " << commitName << endl;
 }
+
 
 void log()
 {
@@ -230,23 +285,25 @@ void log()
         cout << "Run init first\n";
         return;
     }
-    string fullDir = ".miniVCS/commits";
-    if (fs::is_empty(fullDir))
-    {
-        cout << "You haven't Commited anything yet";
-        return;
-    }
 
-    cout << "Commits are:- " << endl;
-    vector<pair<string, string>> commits;
-    for (auto const &entry : fs::directory_iterator(fullDir))
+    string username = getUsername();
+
+    // download commits from S3
+    string command =
+        "aws s3 sync s3://minivcs-bucket/" + username + " .miniVCS/commits";
+    system(command.c_str());
+
+    string commitDir = ".miniVCS/commits";
+
+    for (auto &entry : fs::directory_iterator(commitDir))
     {
-        if (!fs::is_directory(entry.status()))
+        if (!fs::is_directory(entry))
             continue;
 
-        string commitId = entry.path().filename().string();
-
         string metaPath = entry.path().string() + "/meta.txt";
+
+        if (!fs::exists(metaPath))
+            continue;
 
         ifstream meta(metaPath);
 
@@ -263,15 +320,8 @@ void log()
             }
         }
 
-        meta.close();
-
-        commits.push_back({commitId, message});
-    }
-    sort(commits.begin(), commits.end());
-    reverse(commits.begin(), commits.end()); // latest first
-    for (auto &c : commits)
-    {
-        cout << c.first << " -> " << c.second << endl;
+        cout << entry.path().filename().string()
+             << " -> " << message << endl;
     }
 }
 
