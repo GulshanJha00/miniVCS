@@ -347,7 +347,6 @@ void status()
     {
         if (fs::is_directory(entry.path()))
             continue;
-
         string relPath = fs::relative(entry.path(), indexDir).string();
         cout << relPath << endl;
     }
