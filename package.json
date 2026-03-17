@@ -1,6 +1,6 @@
 {
   "name": "minivcs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Lightweight Version Control System in C++ with S3 Remote Support",
   "bin": {
     "minivcs": "./run.js"
