@@ -1,0 +1,23 @@
+{
+  "name": "minivcs",
+  "version": "1.0.0",
+  "description": "A Lightweight Version Control System in C++ with S3 Remote Support",
+  "bin": {
+    "minivcs": "./run.js"
+  },
+    "files": [
+    "run.js",
+    "bin/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GulshanJha00/miniVCS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GulshanJha00/miniVCS/issues"
+  },
+  "homepage": "https://github.com/GulshanJha00/miniVCS#readme"
+}

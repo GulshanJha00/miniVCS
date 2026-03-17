@@ -1,14 +1,21 @@
-const {spawn} = require("child_process")
+#!/usr/bin/env node
+const { spawn } = require("child_process")
 
 const args = process.argv.slice(2)
 
-console.log("\n")
-console.log("################################")
-console.log("Running:", args.join(" "))
-console.log("################################")
-console.log("\n")
-spawn("./bin/miniVCS",args,{
+const proc = spawn(__dirname + "/bin/miniVCS", args, {
     stdio: "inherit"
+})
+
+proc.on("error", (err) => {
+    console.log("Failed to start miniVCS:", err.message)
+})
+
+proc.on("close", (code) => {
+    if (code !== 0) {
+        console.log("\nminiVCS command failed.")
+    }
+
 })
 
 //spawn is a function that says:

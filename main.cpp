@@ -425,12 +425,14 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         cout << "Usage:\n";
-        cout << "./miniVCS init\n";
-        cout << "./miniVCS add <files>\n";
-        cout << "./miniVCS commit\n";
-        cout << "./miniVCS checkout <commit>\n";
-        cout << "./miniVCS log\n";
-        cout << "./miniVCS status\n";
+        cout << "miniVCS init\n";
+        cout << "miniVCS add <files>\n";
+        cout << "miniVCS commit\n";
+        cout << "miniVCS checkout <commit>\n";
+        cout << "miniVCS log\n";
+        cout << "miniVCS status\n";
+        cout << "miniVCS clone <username>\n";
+
         return 0;
     }
     string command = argv[1];
@@ -485,12 +487,13 @@ int main(int argc, char *argv[])
     else
     {
         cout << "Usage:\n";
-        cout << "./miniVCS init\n";
-        cout << "./miniVCS add <file>\n";
-        cout << "./miniVCS commit '<message>'\n";
-        cout << "./miniVCS checkout <commit>\n";
-        cout << "./miniVCS log\n";
-        cout << "./miniVCS status\n";
+        cout << "miniVCS init\n";
+        cout << "miniVCS add <file>\n";
+        cout << "miniVCS commit '<message>'\n";
+        cout << "miniVCS checkout <commit>\n";
+        cout << "miniVCS log\n";
+        cout << "miniVCS status\n";
+        cout << "miniVCS clone <username>\n";
         return 0;
     }
 }
