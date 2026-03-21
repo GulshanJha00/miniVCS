@@ -32,4 +32,3 @@ minivcs init
 minivcs add .
 minivcs commit "first commit"
 minivcs log
-```bash
