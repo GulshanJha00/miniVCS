@@ -1,6 +1,11 @@
 "use client"
+import { ReactNode } from "react"
 
-export default function Terminal({ children }) {
+type TerminalProps = {
+  children: ReactNode
+}
+
+export default function Terminal({ children }: TerminalProps) {
   return (
     <div className="
       my-8
