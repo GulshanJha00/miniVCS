@@ -61,9 +61,9 @@ function ExternalLinkIcon({ className }: { className?: string }) {
 function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
-      <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="font-mono text-sm font-semibold text-white">
             MiniVCS
           </span>
@@ -73,24 +73,24 @@ function Navbar() {
         </div>
 
         {/* Links */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           <a
             href="https://www.npmjs.com/package/minivcs"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-mono"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-mono"
           >
             <NpmIcon className="w-3.5 h-3.5 text-red-500" />
-            npm
+            <span className="hidden xs:inline">npm</span>
           </a>
           <a
             href="https://github.com/GulshanJha00/minivcs"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-mono"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-mono"
           >
             <GitHubIcon className="w-3.5 h-3.5" />
-            GitHub
+            <span className="hidden xs:inline">GitHub</span>
           </a>
         </div>
       </div>
@@ -103,7 +103,7 @@ function Navbar() {
 function Footer() {
   return (
     <footer className="border-t border-zinc-800 mt-24">
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           {/* Left */}
           <div>
@@ -178,16 +178,16 @@ function CommandCard({
       {/* Header */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 bg-zinc-900 hover:bg-zinc-800/60 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 sm:px-5 py-4 bg-zinc-900 hover:bg-zinc-800/60 transition-colors text-left"
       >
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-sm font-medium text-white">
+        <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 min-w-0 pr-3">
+          <span className="font-mono text-sm font-medium text-white shrink-0">
             {name}
           </span>
-          <span className="text-sm text-zinc-500">{shortDesc}</span>
+          <span className="text-xs sm:text-sm text-zinc-500 truncate">{shortDesc}</span>
         </div>
         <svg
-          className={`w-4 h-4 text-zinc-600 transition-transform duration-200 ${
+          className={`w-4 h-4 text-zinc-600 transition-transform duration-200 shrink-0 ${
             open ? "rotate-90" : ""
           }`}
           fill="none"
@@ -205,13 +205,13 @@ function CommandCard({
 
       {/* Body */}
       {open && (
-        <div className="px-5 py-5 bg-zinc-950 border-t border-zinc-800 space-y-4">
+        <div className="px-4 sm:px-5 py-5 bg-zinc-950 border-t border-zinc-800 space-y-4">
           <Terminal>{usageStr}</Terminal>
 
           <p className="text-sm text-zinc-400 leading-relaxed">{description}</p>
 
           {fsTree && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 overflow-x-auto">
               <pre className="font-mono text-xs text-zinc-300 leading-7">
                 {fsTree}
               </pre>
@@ -225,7 +225,7 @@ function CommandCard({
               </p>
               <div className="divide-y divide-zinc-800 border border-zinc-800 rounded-lg overflow-hidden">
                 {steps.map((step, i) => (
-                  <div key={i} className="flex items-start gap-4 px-4 py-3">
+                  <div key={i} className="flex items-start gap-3 sm:gap-4 px-3 sm:px-4 py-3">
                     <span className="font-mono text-xs text-zinc-600 w-5 shrink-0 pt-px">
                       {String(i + 1).padStart(2, "0")}
                     </span>
@@ -258,7 +258,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function Divider() {
-  return <hr className="border-t border-zinc-800 my-16" />;
+  return <hr className="border-t border-zinc-800 my-12 sm:my-16" />;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -268,25 +268,25 @@ export default function Docs() {
     <>
       <Navbar />
 
-      <div className="max-w-3xl px-6 py-16 mx-auto font-sans">
+      <div className="max-w-3xl px-4 sm:px-6 py-10 sm:py-16 mx-auto font-sans">
 
         {/* ── Hero ── */}
-        <section id="intro" className="pb-12 border-b border-zinc-800 mb-16">
-          <span className="inline-flex items-center gap-2 font-mono text-xs text-zinc-500 border border-zinc-800 rounded-full px-3 py-1 mb-6">
+        <section id="intro" className="pb-10 sm:pb-12 border-b border-zinc-800 mb-10 sm:mb-16">
+          <span className="inline-flex items-center gap-2 font-mono text-xs text-zinc-500 border border-zinc-800 rounded-full px-3 py-1 mb-5 sm:mb-6">
             v0.1.0 · C++ · Distributed VCS
           </span>
 
-          <h1 className="text-5xl font-semibold tracking-tight text-white mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white mb-3 sm:mb-4 leading-tight">
             MiniVCS
           </h1>
 
-          <p className="text-zinc-400 text-lg leading-relaxed max-w-xl">
+          <p className="text-zinc-400 text-base sm:text-lg leading-relaxed max-w-xl">
             A lightweight snapshot-based distributed version control system
             written in modern C++. Demonstrates staging, commit snapshots, remote
             syncing, and repository reconstruction.
           </p>
 
-          <div className="flex flex-wrap gap-2 mt-5">
+          <div className="flex flex-wrap gap-2 mt-4 sm:mt-5">
             {["C++17", "AWS S3", "Node CLI", "Snapshot Model"].map((tag) => (
               <span
                 key={tag}
@@ -298,7 +298,7 @@ export default function Docs() {
           </div>
 
           {/* CTA buttons */}
-          <div className="flex flex-wrap gap-3 mt-8">
+          <div className="flex flex-wrap gap-3 mt-6 sm:mt-8">
             <a
               href="https://github.com/GulshanJha00/minivcs"
               target="_blank"
@@ -321,11 +321,11 @@ export default function Docs() {
         </section>
 
         {/* ── TOC ── */}
-        <nav className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 mb-16">
+        <nav className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 sm:px-5 py-4 mb-10 sm:mb-16">
           <p className="text-xs font-medium uppercase tracking-widest text-zinc-600 mb-3">
             On this page
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-2 sm:flex sm:flex-col gap-1">
             {[
               { label: "Installation", href: "#install" },
               { label: "Commands", href: "#commands" },
@@ -344,9 +344,9 @@ export default function Docs() {
         </nav>
 
         {/* ── Install ── */}
-        <section id="install" className="mb-16">
+        <section id="install" className="mb-10 sm:mb-16">
           <SectionLabel>Installation</SectionLabel>
-          <h2 className="text-2xl font-semibold text-white mb-4 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4 tracking-tight">
             Get started
           </h2>
 
@@ -374,9 +374,9 @@ export default function Docs() {
         <Divider />
 
         {/* ── Commands ── */}
-        <section id="commands" className="mb-16">
+        <section id="commands" className="mb-10 sm:mb-16">
           <SectionLabel>Commands</SectionLabel>
-          <h2 className="text-2xl font-semibold text-white mb-6 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-5 sm:mb-6 tracking-tight">
             Command reference
           </h2>
 
@@ -486,9 +486,9 @@ export default function Docs() {
         <Divider />
 
         {/* ── System Design ── */}
-        <section id="design" className="mb-16">
+        <section id="design" className="mb-10 sm:mb-16">
           <SectionLabel>Internals</SectionLabel>
-          <h2 className="text-2xl font-semibold text-white mb-6 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-5 sm:mb-6 tracking-tight">
             System design
           </h2>
 
@@ -500,7 +500,7 @@ export default function Docs() {
               "Repository reconstruction deletes and restores workspace from commit snapshots",
               "Clone derives latest state from commit ordering without a branch pointer",
             ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 px-5 py-4">
+              <div key={i} className="flex items-start gap-3 sm:gap-4 px-4 sm:px-5 py-4">
                 <span className="font-mono text-xs text-zinc-600 w-5 shrink-0 pt-px">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -513,20 +513,20 @@ export default function Docs() {
         <Divider />
 
         {/* ── Architecture ── */}
-        <section id="architecture" className="mb-24">
+        <section id="architecture" className="mb-16 sm:mb-24">
           <SectionLabel>Architecture</SectionLabel>
-          <h2 className="text-2xl font-semibold text-white mb-4 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4 tracking-tight">
             How it fits together
           </h2>
 
-          <p className="text-sm text-zinc-400 leading-relaxed mb-8">
+          <p className="text-sm text-zinc-400 leading-relaxed mb-6 sm:mb-8">
             MiniVCS follows a lightweight distributed snapshot architecture. The
             CLI interacts with local filesystem metadata and synchronizes commit
             snapshots to AWS S3 for remote collaboration.
           </p>
 
-          {/* Flow diagram */}
-          <div className="grid grid-cols-5 gap-0 items-center mb-3">
+          {/* Flow diagram — vertical stack on mobile, horizontal on desktop */}
+          <div className="hidden sm:grid grid-cols-5 gap-0 items-center mb-3">
             {[
               { title: "User", sub: "Runs CLI commands" },
               null,
@@ -535,27 +535,39 @@ export default function Docs() {
               { title: "Local repo", sub: ".miniVCS metadata" },
             ].map((node, i) =>
               node === null ? (
-                <div key={i} className="text-center text-zinc-700 text-lg">
-                  →
-                </div>
+                <div key={i} className="text-center text-zinc-700 text-lg">→</div>
               ) : (
-                <div
-                  key={i}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center"
-                >
+                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
                   <p className="text-sm font-medium text-white">{node.title}</p>
-                  <p className="text-xs text-zinc-500 mt-1 leading-snug">
-                    {node.sub}
-                  </p>
+                  <p className="text-xs text-zinc-500 mt-1 leading-snug">{node.sub}</p>
                 </div>
               )
             )}
           </div>
 
+          {/* Mobile architecture diagram */}
+          <div className="flex flex-col items-center gap-1 sm:hidden mb-3">
+            {[
+              { title: "User", sub: "Runs CLI commands" },
+              { title: "miniVCS CLI", sub: "Node wrapper · C++ binary" },
+              { title: "Local repo", sub: ".miniVCS metadata" },
+            ].map((node, i, arr) => (
+              <div key={i} className="w-full flex flex-col items-center">
+                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+                  <p className="text-sm font-medium text-white">{node.title}</p>
+                  <p className="text-xs text-zinc-500 mt-1 leading-snug">{node.sub}</p>
+                </div>
+                {i < arr.length - 1 && (
+                  <div className="text-zinc-700 text-lg py-1">↓</div>
+                )}
+              </div>
+            ))}
+          </div>
+
           <div className="flex justify-center text-zinc-700 text-lg my-3">↓</div>
 
-          <div className="flex justify-center mb-10">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center w-60">
+          <div className="flex justify-center mb-8 sm:mb-10">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center w-full sm:w-60">
               <p className="text-sm font-medium text-white">AWS S3 remote</p>
               <p className="text-xs text-zinc-500 mt-1">
                 Stores commit snapshots for distribution
@@ -579,7 +591,7 @@ export default function Docs() {
                 desc: "A fresh local repository is created and the latest snapshot is restored by finding the most recent commit folder lexicographically.",
               },
             ].map(({ cmd, desc }) => (
-              <div key={cmd} className="flex gap-4 text-sm text-zinc-400">
+              <div key={cmd} className="flex gap-3 sm:gap-4 text-sm text-zinc-400">
                 <span className="font-mono text-xs bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 h-fit shrink-0 text-zinc-300 mt-0.5">
                   {cmd}
                 </span>
@@ -590,7 +602,7 @@ export default function Docs() {
         </section>
 
         {/* ── Author card ── */}
-        <div className="border border-zinc-800 rounded-xl px-5 py-5 flex items-center gap-4 mb-8">
+        <div className="border border-zinc-800 rounded-xl px-4 sm:px-5 py-5 flex items-center gap-4 mb-8">
           <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
             <span className="font-mono text-xs font-semibold text-zinc-300">
               GK
@@ -607,7 +619,7 @@ export default function Docs() {
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors shrink-0"
           >
             <GitHubIcon className="w-3.5 h-3.5" />
-            GitHub
+            <span className="hidden xs:inline">GitHub</span>
           </a>
         </div>
 
