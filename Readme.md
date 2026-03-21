@@ -1,6 +1,9 @@
 # MiniVCS 🚀
 
 A lightweight snapshot-based distributed version control system written in modern C++. Demonstrates how real VCS tools manage staging, commit snapshots, remote syncing, and repository reconstruction.
+## Read Docs
+
+- 📖 [Full Documentation](https://mini-vcs.vercel.app/docs)
 
 [![npm](https://img.shields.io/npm/v/minivcs?color=red&style=flat-square)](https://www.npmjs.com/package/minivcs)
 [![GitHub](https://img.shields.io/badge/GitHub-GulshanJha00%2Fminivcs-181717?style=flat-square&logo=github)](https://github.com/GulshanJha00/minivcs)
@@ -150,7 +153,7 @@ User → CLI → .miniVCS (local) → AWS S3 (remote)
 
 - 📦 [npm package](https://www.npmjs.com/package/minivcs)
 - 🐙 [GitHub — GulshanJha00/minivcs](https://github.com/GulshanJha00/minivcs)
-- 📖 [Full Documentation](https://github.com/GulshanJha00/minivcs#readme)
+- 📖 [Full Documentation](https://mini-vcs.vercel.app/docs)
 
 ---
 
