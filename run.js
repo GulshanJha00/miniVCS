@@ -1,36 +1,47 @@
 #!/usr/bin/env node
-const { spawn } = require("child_process")
 
-const args = process.argv.slice(2)
+const { spawn } = require("child_process");
+const path = require("path");
 
-const proc = spawn(__dirname + "/bin/miniVCS", args, {
+const args = process.argv.slice(2);
+
+let executable;
+
+if (process.platform === "darwin") {
+    // macOS
+    executable = path.join(
+        __dirname,
+        "bin",
+        "mac",
+        "miniVCS"
+    );
+} 
+else if (process.platform === "win32") {
+    // Windows
+    executable = path.join(
+        __dirname,
+        "bin",
+        "windows",
+        "miniVCS.exe"
+    );
+} 
+else {
+    console.error("MiniVCS only supports macOS and Windows.");
+    process.exit(1);
+}
+
+const proc = spawn(executable, args, {
     stdio: "inherit"
-})
+});
 
 proc.on("error", (err) => {
-    console.log("Failed to start miniVCS:", err.message)
-})
+    console.error("Failed to start miniVCS:", err.message);
+});
 
 proc.on("close", (code) => {
     if (code !== 0) {
-        console.log("\nminiVCS command failed.")
+        console.log("\nminiVCS command failed.");
     }
 
-})
-
-//spawn is a function that says:
-// ⭐ “Run this executable program”
-//This is BIG misconception.
-// ❌ does NOT understand C++
-// ❌ does NOT compile
-// ❌ does NOT read your source
-// It ONLY runs the already compiled binary.
-
-
-// OS does:
-// load binary into RAM
-// prepare stack / heap
-// create PID
-// call main(argc, argv)
-// So JS is NOT “calling C++ function”
-// It is: ⭐ launching a new program
+    process.exit(code ?? 1);
+});
